@@ -1,0 +1,581 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  ClipboardList, 
+  MessageSquare, 
+  Stethoscope, 
+  CheckCircle, 
+  Clock, 
+  Menu, 
+  X, 
+  Send, 
+  Plus, 
+  Trash2, 
+  ChevronRight,
+  Activity,
+  User,
+  AlertCircle,
+  FileText,
+  Moon,
+  Sun,
+  Settings,
+  LogOut,
+  Award,
+  Shield
+} from 'lucide-react';
+
+// --- Types & Interfaces ---
+interface Task {
+  id: string;
+  patientRoom: string;
+  description: string;
+  priority: 'STAT' | 'Urgent' | 'Routine';
+  completed: boolean;
+  dueTime?: string;
+}
+
+interface Note {
+  id: string;
+  patient: string;
+  content: string;
+  timestamp: string;
+}
+
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  type?: 'text' | 'sbar-result';
+}
+
+// --- Mock Data ---
+const INITIAL_TASKS: Task[] = [
+  { id: '1', patientRoom: '204', description: 'Administer IV Antibiotics', priority: 'Urgent', completed: false, dueTime: '14:00' },
+  { id: '2', patientRoom: '201', description: 'Post-op Vitals Check', priority: 'STAT', completed: false, dueTime: '13:45' },
+  { id: '3', patientRoom: '210', description: 'Wound Dressing Change', priority: 'Routine', completed: true, dueTime: '15:30' },
+];
+
+// --- Main Application Component ---
+export default function NurseFlowApp() {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'tasks' | 'sbar' | 'chat' | 'profile'>('dashboard');
+  const [darkMode, setDarkMode] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
+
+  // -- State Managers --
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
+    { id: '1', sender: 'ai', text: 'Hello! I am ready to assist with protocols, drug interactions, or documenting care.' }
+  ]);
+
+  // -- Helpers --
+  const showNotification = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const toggleTask = (id: string) => {
+    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  };
+
+  const getPriorityColor = (p: string) => {
+    switch (p) {
+      case 'STAT': return 'bg-red-100 text-red-800 border-red-200';
+      case 'Urgent': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'Routine': return 'bg-blue-50 text-blue-700 border-blue-100';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // --- Views ---
+
+  // 1. Dashboard View
+  const DashboardView = () => {
+    const pendingTasks = tasks.filter(t => !t.completed);
+    const statTasks = pendingTasks.filter(t => t.priority === 'STAT').length;
+    
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <header className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Good Afternoon</h2>
+            <p className="text-slate-500 dark:text-slate-400">Shift progress: 4/12 hrs</p>
+          </div>
+          <button 
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition-colors"
+          >
+            {darkMode ? <Sun size={20} className="text-yellow-400"/> : <Moon size={20} className="text-slate-600"/>}
+          </button>
+        </header>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex items-center space-x-2 text-blue-600 mb-2">
+              <ClipboardList size={20} />
+              <span className="font-semibold">Pending</span>
+            </div>
+            <span className="text-3xl font-bold text-slate-800 dark:text-white">{pendingTasks.length}</span>
+            <p className="text-xs text-slate-400 mt-1">Tasks remaining</p>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex items-center space-x-2 text-red-500 mb-2">
+              <AlertCircle size={20} />
+              <span className="font-semibold">STAT</span>
+            </div>
+            <span className="text-3xl font-bold text-slate-800 dark:text-white">{statTasks}</span>
+            <p className="text-xs text-slate-400 mt-1">Critical items</p>
+          </div>
+        </div>
+
+        {/* Up Next Section */}
+        <div className="bg-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-200 dark:shadow-none">
+          <div className="flex justify-between items-start mb-3">
+            <h3 className="font-semibold text-lg">Up Next</h3>
+            <span className="bg-blue-500 bg-opacity-50 px-2 py-1 rounded text-xs">14:00</span>
+          </div>
+          {pendingTasks.length > 0 ? (
+            <div>
+              <div className="flex items-center space-x-2 mb-1">
+                <span className="font-bold text-xl">Room {pendingTasks[0].patientRoom}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full bg-white text-blue-600 font-bold`}>
+                  {pendingTasks[0].priority}
+                </span>
+              </div>
+              <p className="text-blue-100">{pendingTasks[0].description}</p>
+            </div>
+          ) : (
+            <p className="text-blue-100">All caught up! Great job.</p>
+          )}
+          <button 
+            onClick={() => setActiveTab('tasks')}
+            className="mt-4 w-full bg-white text-blue-600 py-2 rounded-xl font-medium text-sm hover:bg-blue-50 transition-colors"
+          >
+            View All Tasks
+          </button>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => setActiveTab('sbar')}
+            className="p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-100 dark:border-emerald-800 flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-400 gap-2 hover:bg-emerald-100 transition-colors"
+          >
+            <FileText size={24} />
+            <span className="font-medium text-sm">New SBAR</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('chat')}
+            className="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800 flex flex-col items-center justify-center text-indigo-700 dark:text-indigo-400 gap-2 hover:bg-indigo-100 transition-colors"
+          >
+            <Stethoscope size={24} />
+            <span className="font-medium text-sm">Ask AI</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 2. Task List View
+  const TasksView = () => {
+    const [newTaskText, setNewTaskText] = useState('');
+    const [newTaskRoom, setNewTaskRoom] = useState('');
+    const [isAdding, setIsAdding] = useState(false);
+
+    const addTask = () => {
+      if (!newTaskText || !newTaskRoom) return;
+      const newTask: Task = {
+        id: Date.now().toString(),
+        patientRoom: newTaskRoom,
+        description: newTaskText,
+        priority: 'Routine',
+        completed: false,
+        dueTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      };
+      setTasks([...tasks, newTask]);
+      setNewTaskText('');
+      setNewTaskRoom('');
+      setIsAdding(false);
+      showNotification('Task added');
+    };
+
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">My Shift Tasks</h2>
+          <button 
+            onClick={() => setIsAdding(!isAdding)}
+            className="bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition"
+          >
+            {isAdding ? <X size={20}/> : <Plus size={20}/>}
+          </button>
+        </div>
+
+        {isAdding && (
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl mb-4 border border-slate-200 dark:border-slate-700 animate-slideDown">
+            <div className="flex gap-2 mb-2">
+              <input 
+                value={newTaskRoom}
+                onChange={(e) => setNewTaskRoom(e.target.value)}
+                placeholder="Room #" 
+                className="w-1/3 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
+              />
+              <input 
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                placeholder="Task description..." 
+                className="w-2/3 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+            <button 
+              onClick={addTask}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium text-sm"
+            >
+              Add Task
+            </button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto space-y-3 pb-20">
+          {tasks.map(task => (
+            <div 
+              key={task.id} 
+              className={`p-4 rounded-xl border transition-all duration-200 ${
+                task.completed 
+                  ? 'bg-slate-50 border-slate-100 opacity-60 dark:bg-slate-800/50 dark:border-slate-700' 
+                  : 'bg-white border-slate-100 shadow-sm dark:bg-slate-800 dark:border-slate-700'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <button 
+                  onClick={() => toggleTask(task.id)}
+                  className={`mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                    task.completed 
+                      ? 'bg-green-500 border-green-500 text-white' 
+                      : 'border-slate-300 hover:border-blue-500'
+                  }`}
+                >
+                  {task.completed && <CheckCircle size={14} />}
+                </button>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <span className={`font-semibold ${task.completed ? 'line-through text-slate-400' : 'text-slate-800 dark:text-white'}`}>
+                      Room {task.patientRoom}
+                    </span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase font-bold tracking-wide ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                  <p className={`text-sm mt-1 ${task.completed ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {task.description}
+                  </p>
+                  <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
+                    <Clock size={12} />
+                    <span>Due {task.dueTime}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {tasks.length === 0 && (
+            <div className="text-center py-10 text-slate-400">
+              <CheckCircle size={48} className="mx-auto mb-2 opacity-20" />
+              <p>All clear! No tasks remaining.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // 3. Smart SBAR Creator
+  const SBARView = () => {
+    const [situation, setSituation] = useState('');
+    const [background, setBackground] = useState('');
+    const [assessment, setAssessment] = useState('');
+    const [recommendation, setRecommendation] = useState('');
+    const [generated, setGenerated] = useState(false);
+
+    const generateReport = () => {
+      setGenerated(true);
+      showNotification('SBAR Generated & Copied to Clipboard');
+      // In a real app, this would use the Clipboard API
+    };
+
+    const clearForm = () => {
+      setSituation('');
+      setBackground('');
+      setAssessment('');
+      setRecommendation('');
+      setGenerated(false);
+    };
+
+    return (
+      <div className="h-full flex flex-col pb-20">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Smart SBAR</h2>
+          {generated && (
+            <button onClick={clearForm} className="text-red-500 text-sm font-medium">Clear</button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {!generated ? (
+            <>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-slate-500 tracking-wider">Situation</label>
+                <textarea 
+                  value={situation}
+                  onChange={(e) => setSituation(e.target.value)}
+                  placeholder="Who is it? Where are they? What is the problem?"
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[80px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-slate-500 tracking-wider">Background</label>
+                <textarea 
+                  value={background}
+                  onChange={(e) => setBackground(e.target.value)}
+                  placeholder="Clinical history, admission diagnosis..."
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[80px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-slate-500 tracking-wider">Assessment</label>
+                <textarea 
+                  value={assessment}
+                  onChange={(e) => setAssessment(e.target.value)}
+                  placeholder="What do you think is the issue? Vitals?"
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[80px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-slate-500 tracking-wider">Recommendation</label>
+                <textarea 
+                  value={recommendation}
+                  onChange={(e) => setRecommendation(e.target.value)}
+                  placeholder="What do you want to happen? Orders?"
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[80px]"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+              <h3 className="text-emerald-800 dark:text-emerald-400 font-bold mb-4 flex items-center gap-2">
+                <CheckCircle size={20} /> Ready for Handoff
+              </h3>
+              <div className="prose prose-sm text-slate-700 dark:text-slate-300 space-y-3 font-mono">
+                <p><span className="font-bold">S:</span> {situation}</p>
+                <p><span className="font-bold">B:</span> {background}</p>
+                <p><span className="font-bold">A:</span> {assessment}</p>
+                <p><span className="font-bold">R:</span> {recommendation}</p>
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-medium hover:bg-emerald-700 transition">Copy Text</button>
+                <button className="flex-1 bg-white border border-emerald-200 text-emerald-700 py-2 rounded-lg font-medium hover:bg-emerald-50 transition">Save to EMR</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!generated && (
+          <div className="pt-4">
+            <button 
+              onClick={generateReport}
+              className="w-full bg-slate-800 dark:bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+            >
+              <Activity size={18} /> Generate SBAR
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 4. AI Assistant View
+  const ChatView = () => {
+    const [input, setInput] = useState('');
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if(scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [chatHistory]);
+
+    const handleSend = () => {
+      if (!input.trim()) return;
+      
+      const userMsg: ChatMessage = { id: Date.now().toString(), sender: 'user', text: input };
+      setChatHistory(prev => [...prev, userMsg]);
+      setInput('');
+
+      // Simulate AI Response
+      setTimeout(() => {
+        let aiResponseText = "I can help you look that up. Could you clarify the patient's age?";
+        const lowerInput = input.toLowerCase();
+        
+        if (lowerInput.includes('dose') || lowerInput.includes('mg')) {
+          aiResponseText = "⚠️ Standard adult dosage for Ibuprofen is 200-400mg every 4-6 hours. Max 3200mg/day. Please verify patient renal function.";
+        } else if (lowerInput.includes('iv') || lowerInput.includes('rate')) {
+          aiResponseText = "For standard saline IV, typical maintenance rates are 75-125 mL/hr depending on weight. Check orders for specific additives.";
+        } else if (lowerInput.includes('thank')) {
+          aiResponseText = "You're welcome! Keep up the great work.";
+        }
+
+        const aiMsg: ChatMessage = { id: (Date.now()+1).toString(), sender: 'ai', text: aiResponseText };
+        setChatHistory(prev => [...prev, aiMsg]);
+      }, 1000);
+    };
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* ... existing code ... */}
+      </div>
+    );
+  };
+
+  // 5. Profile View (New)
+  const ProfileView = () => {
+    return (
+      <div className="h-full flex flex-col animate-fadeIn">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Nurse Profile</h2>
+        
+        {/* Profile Card */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm mb-6 flex items-center gap-4">
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300">
+            <User size={32} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Sarah Jenkins, RN</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">ICU • ID: RN-4921</p>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">On Shift</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-center">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">12</div>
+            <div className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">Patients</div>
+          </div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800 text-center">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">98%</div>
+            <div className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">On Time</div>
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-xl border border-purple-100 dark:border-purple-800 text-center">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">4</div>
+            <div className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">Shifts</div>
+          </div>
+        </div>
+
+        {/* Settings List */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <button className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition border-b border-slate-100 dark:border-slate-700">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <Settings size={18} className="text-slate-600 dark:text-slate-300" />
+              </div>
+              <span className="text-slate-700 dark:text-slate-200 font-medium">App Settings</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+          
+          <button 
+            onClick={() => setDarkMode(!darkMode)}
+            className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition border-b border-slate-100 dark:border-slate-700"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                {darkMode ? <Sun size={18} className="text-yellow-500" /> : <Moon size={18} className="text-slate-600 dark:text-slate-300" />}
+              </div>
+              <span className="text-slate-700 dark:text-slate-200 font-medium">Dark Mode</span>
+            </div>
+            <div className={`w-10 h-6 rounded-full relative transition-colors ${darkMode ? 'bg-blue-600' : 'bg-slate-300'}`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${darkMode ? 'left-5' : 'left-1'}`}></div>
+            </div>
+          </button>
+
+          <button className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <Shield size={18} className="text-slate-600 dark:text-slate-300" />
+              </div>
+              <span className="text-slate-700 dark:text-slate-200 font-medium">Security & ID</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+        </div>
+
+        <button className="mt-auto mb-4 w-full p-4 rounded-xl border border-red-100 bg-red-50 text-red-600 font-medium flex items-center justify-center gap-2 hover:bg-red-100 transition">
+          <LogOut size={18} /> Sign Out
+        </button>
+      </div>
+    );
+  };
+
+  // --- Main Layout Render ---
+  return (
+    <div className={`flex justify-center min-h-screen ${darkMode ? 'dark bg-slate-950' : 'bg-slate-100'} font-sans`}>
+      <div className={`w-full max-w-md h-[100dvh] overflow-hidden flex flex-col relative bg-white dark:bg-slate-900 shadow-2xl transition-colors duration-300`}>
+        
+        {/* Top Notification Toast */}
+        <div className={`absolute top-4 left-4 right-4 z-50 transform transition-all duration-300 ${notification ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
+          <div className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg flex items-center justify-center gap-2 text-sm font-medium">
+            <CheckCircle size={16} className="text-emerald-400"/>
+            {notification}
+          </div>
+        </div>
+
+        {/* Dynamic Content Area */}
+        <div className="flex-1 overflow-hidden p-6 pb-24 relative">
+          {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'tasks' && <TasksView />}
+          {activeTab === 'sbar' && <SBARView />}
+          {activeTab === 'chat' && <ChatView />}
+          {activeTab === 'profile' && <ProfileView />}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="absolute bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 p-2 pb-6 px-6">
+          <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 rounded-2xl p-2">
+            {[
+              { id: 'dashboard', icon: ClipboardList, label: 'Home' },
+              { id: 'tasks', icon: CheckCircle, label: 'Tasks' },
+              { id: 'sbar', icon: FileText, label: 'SBAR' },
+              { id: 'chat', icon: MessageSquare, label: 'Ask AI' },
+              { id: 'profile', icon: User, label: 'Profile' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-200 ${
+                  activeTab === tab.id 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none translate-y-[-4px]' 
+                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                }`}
+              >
+                <tab.icon size={20} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                <span className="text-[10px] font-medium mt-1">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* CSS Animation Styles */}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+        .animate-slideDown { animation: slideDown 0.3s ease-out forwards; }
+      `}</style>
+    </div>
+  );
+}
