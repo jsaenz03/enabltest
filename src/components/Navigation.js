@@ -28,6 +28,7 @@ export default function Navigation({ activeTab, setActiveTab }) {
         borderTop: 1,
         borderColor: 'divider',
         pb: 2,
+        boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.05)',
       }}
     >
       <BottomNavigation
@@ -36,27 +37,54 @@ export default function Navigation({ activeTab, setActiveTab }) {
         sx={{
           '& .MuiBottomNavigationAction-root': {
             minWidth: 60,
-            pt: 1,
-            pb: 1,
+            pt: 1.5,
+            pb: 1.5,
             fontSize: '0.75rem',
-            fontWeight: 500,
+            fontWeight: 600,
             transition: 'all 0.2s ease',
             borderRadius: 2,
             mx: 0.5,
+            color: 'text.secondary',
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: 'inherit',
+              mt: 0.5,
+              '&.Mui-selected': {
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              },
+            },
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.5rem',
+              transition: 'transform 0.2s ease',
+              color: 'inherit',
+            },
             '&.Mui-selected': {
               bgcolor: 'primary.main',
               color: 'primary.contrastText',
-              boxShadow: 4,
+              boxShadow: 3,
+              transform: 'translateY(-2px)',
               '& .MuiSvgIcon-root': {
                 transform: 'scale(1.1)',
               },
             },
             '&:hover:not(.Mui-selected)': {
-              color: 'text.secondary',
+              color: 'text.primary',
               bgcolor: 'action.hover',
+              transform: 'translateY(-1px)',
+            },
+            '&:not(.Mui-selected)': {
+              '& .MuiSvgIcon-root': {
+                opacity: 0.8,
+              },
+              '&:hover .MuiSvgIcon-root': {
+                opacity: 1,
+              },
             },
           },
         }}
+        showLabels
       >
         {tabs.map((tab) => (
           <BottomNavigationAction
