@@ -27,25 +27,25 @@ import {
 export default function DashboardView() {
   const stats = [
     {
-      label: 'Active Clients',
+      label: 'Clients',
       value: '24',
       icon: People,
       color: 'primary.main'
     },
     {
-      label: 'Staff Members',
+      label: 'Staff',
       value: '8',
       icon: ManageAccounts,
       color: 'success.main'
     },
     {
-      label: 'Pending Invoices',
+      label: 'Invoices',
       value: '5',
       icon: Receipt,
       color: 'warning.main'
     },
     {
-      label: 'Open Incidents',
+      label: 'Incidents',
       value: '2',
       icon: Warning,
       color: 'error.main'
@@ -80,19 +80,18 @@ export default function DashboardView() {
       {/* Stats Grid */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
-          <Grid item xs={6} sm={3} key={index}>
-            <Card>
-              <CardContent sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Grid item xs={3} key={index} sx={{ minWidth: 0, flex: 1 }}>
+            <Card sx={{ height: '100%', width: '100%' }}>
+              <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                   <Avatar sx={{ bgcolor: stat.color, width: 32, height: 32 }}>
                     <stat.icon sx={{ fontSize: 18 }} />
                   </Avatar>
-                  <TrendingUp sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Box>
                 <Typography variant="h5" component="p" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                   {stat.value}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {stat.label}
                 </Typography>
               </CardContent>
@@ -187,7 +186,7 @@ export default function DashboardView() {
           Quick Actions
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={6} sm={3}>
+          <Grid item xs={3} sx={{ minWidth: 0, flex: 1 }}>
             <Button
               fullWidth
               variant="outlined"
@@ -195,6 +194,7 @@ export default function DashboardView() {
                 p: 2,
                 flexDirection: 'column',
                 height: '100%',
+                width: '100%',
                 textTransform: 'none',
                 bgcolor: 'action.hover',
                 '&:hover': {
@@ -203,12 +203,12 @@ export default function DashboardView() {
               }}
             >
               <People sx={{ mb: 1, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 Add Client
               </Typography>
             </Button>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid item xs={3} sx={{ minWidth: 0, flex: 1 }}>
             <Button
               fullWidth
               variant="outlined"
@@ -216,6 +216,7 @@ export default function DashboardView() {
                 p: 2,
                 flexDirection: 'column',
                 height: '100%',
+                width: '100%',
                 textTransform: 'none',
                 bgcolor: 'action.hover',
                 '&:hover': {
@@ -224,12 +225,12 @@ export default function DashboardView() {
               }}
             >
               <CalendarToday sx={{ mb: 1, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 Schedule
               </Typography>
             </Button>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid item xs={3} sx={{ minWidth: 0, flex: 1 }}>
             <Button
               fullWidth
               variant="outlined"
@@ -237,6 +238,7 @@ export default function DashboardView() {
                 p: 2,
                 flexDirection: 'column',
                 height: '100%',
+                width: '100%',
                 textTransform: 'none',
                 bgcolor: 'action.hover',
                 '&:hover': {
@@ -245,12 +247,12 @@ export default function DashboardView() {
               }}
             >
               <Receipt sx={{ mb: 1, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                Create Invoice
+              <Typography variant="body2" sx={{ fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                Invoice
               </Typography>
             </Button>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid item xs={3} sx={{ minWidth: 0, flex: 1 }}>
             <Button
               fullWidth
               variant="outlined"
@@ -258,6 +260,7 @@ export default function DashboardView() {
                 p: 2,
                 flexDirection: 'column',
                 height: '100%',
+                width: '100%',
                 textTransform: 'none',
                 bgcolor: 'action.hover',
                 '&:hover': {
@@ -266,8 +269,8 @@ export default function DashboardView() {
               }}
             >
               <Warning sx={{ mb: 1, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                Report Incident
+              <Typography variant="body2" sx={{ fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                Report
               </Typography>
             </Button>
           </Grid>
