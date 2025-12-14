@@ -1,5 +1,29 @@
 import React, { useState } from 'react';
-import { Plus, Search, Download, DollarSign, FileText, CheckCircle, Clock } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  Chip,
+  IconButton,
+  Modal,
+  Divider,
+  Paper,
+} from '@mui/material';
+import {
+  Add,
+  Search,
+  Download,
+  AttachMoney,
+  Description,
+  CheckCircle,
+  Schedule,
+} from '@mui/icons-material';
 
 export default function InvoicesView({ showNotification }) {
   const [invoices, setInvoices] = useState([
@@ -46,16 +70,29 @@ export default function InvoicesView({ showNotification }) {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusStyles = (status) => {
+  const getStatusColor = (status) => {
     switch(status) {
       case 'paid':
-        return 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300';
+        return 'success';
       case 'pending':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300';
+        return 'warning';
       case 'overdue':
-        return 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300';
+        return 'error';
       default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        return 'default';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'paid':
+        return <CheckCircle sx={{ fontSize: 16 }} />;
+      case 'pending':
+        return <Schedule sx={{ fontSize: 16 }} />;
+      case 'overdue':
+        return <Schedule sx={{ fontSize: 16 }} />;
+      default:
+        return null;
     }
   };
 
@@ -64,155 +101,239 @@ export default function InvoicesView({ showNotification }) {
   const pendingAmount = filteredInvoices.filter(inv => inv.status === 'pending').reduce((sum, inv) => sum + inv.amount, 0);
 
   return (
-    <div className="h-full flex flex-col">
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Invoices</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Manage invoices and payments</p>
-      </div>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Invoices
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Manage invoices and payments
+        </Typography>
+      </Box>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Total Invoiced</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalAmount.toFixed(2)}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Paid</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">${paidAmount.toFixed(2)}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Pending</p>
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${pendingAmount.toFixed(2)}</p>
-        </div>
-      </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Total Invoiced
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+                ${totalAmount.toFixed(2)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Paid
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                ${paidAmount.toFixed(2)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Pending
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                ${pendingAmount.toFixed(2)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Filters and Search */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search invoices..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-          />
-        </div>
-        <select
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search invoices..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+          }}
+          size="small"
+        />
+        <Select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
+          size="small"
+          sx={{ minWidth: 120 }}
         >
-          <option value="all">All Status</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
-          <option value="overdue">Overdue</option>
-        </select>
-        <button
+          <MenuItem value="all">All Status</MenuItem>
+          <MenuItem value="paid">Paid</MenuItem>
+          <MenuItem value="pending">Pending</MenuItem>
+          <MenuItem value="overdue">Overdue</MenuItem>
+        </Select>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center gap-2"
+          sx={{ minWidth: { xs: 'auto', sm: 120 } }}
         >
-          <Plus size={18} />
-          <span className="hidden sm:inline">Create</span>
-        </button>
-      </div>
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Create
+          </Box>
+        </Button>
+      </Box>
 
       {/* Invoice List */}
-      <div className="flex-1 overflow-y-auto space-y-3">
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
         {filteredInvoices.map((invoice) => (
-          <div
-            key={invoice.id}
-            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-semibold text-slate-900 dark:text-white">{invoice.invoiceNumber}</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{invoice.clientName}</p>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusStyles(invoice.status)}`}>
-                {invoice.status.toUpperCase()}
-              </span>
-            </div>
+          <Card key={invoice.id} sx={{ mb: 2, '&:hover': { boxShadow: 2 } }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {invoice.invoiceNumber}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {invoice.clientName}
+                  </Typography>
+                </Box>
+                <Chip
+                  label={invoice.status.toUpperCase()}
+                  color={getStatusColor(invoice.status)}
+                  icon={getStatusIcon(invoice.status)}
+                  size="small"
+                />
+              </Box>
 
-            <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">{invoice.serviceDescription}</p>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {invoice.serviceDescription}
+              </Typography>
 
-            <div className="flex justify-between items-end">
-              <div className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
-                <p>Date: {new Date(invoice.date).toLocaleDateString()}</p>
-                {invoice.status === 'paid' && <p className="text-green-600 dark:text-green-400">Paid: {new Date(invoice.paidDate).toLocaleDateString()}</p>}
-                {invoice.status !== 'paid' && invoice.dueDate && <p>Due: {new Date(invoice.dueDate).toLocaleDateString()}</p>}
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">${invoice.amount.toFixed(2)}</p>
-                <button className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
-                  <Download size={14} />
-                  Download
-                </button>
-              </div>
-            </div>
-          </div>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Date: {new Date(invoice.date).toLocaleDateString()}
+                  </Typography>
+                  {invoice.status === 'paid' && (
+                    <Typography variant="caption" color="success.main" sx={{ display: 'block' }}>
+                      Paid: {new Date(invoice.paidDate).toLocaleDateString()}
+                    </Typography>
+                  )}
+                  {invoice.status !== 'paid' && invoice.dueDate && (
+                    <Typography variant="caption" color="text.secondary">
+                      Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    ${invoice.amount.toFixed(2)}
+                  </Typography>
+                  <IconButton size="small" color="primary">
+                    <Download fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </div>
+      </Box>
 
       {/* Create Invoice Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create Invoice</h2>
-            <div className="space-y-3">
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Client</option>
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Service Description"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <input
-                type="date"
-                placeholder="Service Date"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <input
-                type="number"
-                placeholder="Amount ($)"
-                step="0.01"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <input
-                type="date"
-                placeholder="Due Date"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <textarea
-                placeholder="Notes (optional)"
-                rows="3"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  showNotification('Invoice created successfully!');
-                  setShowCreateModal(false);
-                }}
-                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-              >
-                Create Invoice
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        aria-labelledby="create-invoice-modal"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '90%', sm: 400 },
+          maxHeight: '90vh',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          p: 4,
+          boxShadow: 24,
+        }}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Create Invoice
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Client</MenuItem>
+              <MenuItem value="john">John Doe</MenuItem>
+              <MenuItem value="jane">Jane Smith</MenuItem>
+            </Select>
+
+            <TextField
+              placeholder="Service Description"
+              size="small"
+              fullWidth
+            />
+
+            <TextField
+              type="date"
+              placeholder="Service Date"
+              size="small"
+              fullWidth
+            />
+
+            <TextField
+              type="number"
+              placeholder="Amount ($)"
+              step="0.01"
+              size="small"
+              fullWidth
+              InputProps={{
+                startAdornment: <AttachMoney sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }} />,
+              }}
+            />
+
+            <TextField
+              type="date"
+              placeholder="Due Date"
+              size="small"
+              fullWidth
+            />
+
+            <TextField
+              placeholder="Notes (optional)"
+              multiline
+              rows={3}
+              size="small"
+              fullWidth
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowCreateModal(false)}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                showNotification('Invoice created successfully!');
+                setShowCreateModal(false);
+              }}
+              fullWidth
+            >
+              Create Invoice
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }

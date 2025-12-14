@@ -1,5 +1,34 @@
 import React, { useState } from 'react';
-import { Plus, Search, Calendar as CalendarIcon, List, Video, MapPin, Bell, Clock } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  Chip,
+  IconButton,
+  Modal,
+  Grid,
+  Paper,
+  Checkbox,
+  FormControlLabel,
+  Divider,
+} from '@mui/material';
+import {
+  Add,
+  Search,
+  CalendarMonth,
+  ViewList,
+  VideoCall,
+  LocationOn,
+  Notifications,
+  AccessTime,
+  Mail,
+  Sms,
+} from '@mui/icons-material';
 
 export default function AppointmentsView({ showNotification }) {
   const [view, setView] = useState('list'); // 'list' or 'calendar'
@@ -47,6 +76,7 @@ export default function AppointmentsView({ showNotification }) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [reminders, setReminders] = useState({ email: true, sms: true });
 
   const filteredAppointments = appointments.filter(apt =>
     apt.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,16 +84,16 @@ export default function AppointmentsView({ showNotification }) {
     apt.service.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusStyles = (status) => {
+  const getStatusColor = (status) => {
     switch(status) {
       case 'confirmed':
-        return 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300';
+        return 'success';
       case 'pending':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300';
+        return 'warning';
       case 'cancelled':
-        return 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300';
+        return 'error';
       default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        return 'default';
     }
   };
 
@@ -75,214 +105,291 @@ export default function AppointmentsView({ showNotification }) {
   }, {});
 
   return (
-    <div className="h-full flex flex-col">
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Appointments</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Manage appointments and schedules</p>
-      </div>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Appointments
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Manage appointments and schedules
+        </Typography>
+      </Box>
 
       {/* View Toggle */}
-      <div className="flex gap-2 mb-4">
-        <button
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          variant={view === 'list' ? 'contained' : 'outlined'}
           onClick={() => setView('list')}
-          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-            view === 'list'
-              ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white'
-          }`}
+          startIcon={<ViewList />}
+          sx={{ minWidth: 100 }}
         >
-          <List size={18} />
           List
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={view === 'calendar' ? 'contained' : 'outlined'}
           onClick={() => setView('calendar')}
-          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-            view === 'calendar'
-              ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white'
-          }`}
+          startIcon={<CalendarMonth />}
+          sx={{ minWidth: 100 }}
         >
-          <CalendarIcon size={18} />
           Calendar
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {/* Search and Add */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search appointments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-          />
-        </div>
-        <button
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search appointments..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+          }}
+          size="small"
+        />
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center gap-2"
+          sx={{ minWidth: { xs: 'auto', sm: 120 } }}
         >
-          <Plus size={18} />
-          <span className="hidden sm:inline">Schedule</span>
-        </button>
-      </div>
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Schedule
+          </Box>
+        </Button>
+      </Box>
 
       {/* Appointments List */}
       {view === 'list' && (
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
           {Object.keys(groupedAppointments).sort().map((date) => (
-            <div key={date}>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
+            <Box key={date} sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                 {new Date(date).toLocaleDateString('en-AU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </h3>
-              <div className="space-y-2">
-                {groupedAppointments[date].map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white">{apt.clientName}</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">{apt.service}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusStyles(apt.status)}`}>
-                        {apt.status.toUpperCase()}
-                      </span>
-                    </div>
+              </Typography>
+              {groupedAppointments[date].map((apt) => (
+                <Card key={apt.id} sx={{ mb: 2, '&:hover': { boxShadow: 2 } }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          {apt.clientName}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {apt.service}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={apt.status.toUpperCase()}
+                        color={getStatusColor(apt.status)}
+                        size="small"
+                      />
+                    </Box>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                        <Clock size={14} />
-                        <span>{apt.time} ({apt.duration} min)</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                        {apt.type === 'online' ? <Video size={14} /> : <MapPin size={14} />}
-                        <span>{apt.location}</span>
-                      </div>
-                    </div>
+                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                      <Grid item xs={6}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {apt.time} ({apt.duration} min)
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {apt.type === 'online' ?
+                            <VideoCall sx={{ fontSize: 16, color: 'text.secondary' }} /> :
+                            <LocationOn sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          }
+                          <Typography variant="body2" color="text.secondary">
+                            {apt.location}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
 
-                    <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" color="text.secondary">
                         with {apt.staffName}
-                      </p>
-                      <div className="flex items-center gap-2">
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {apt.reminders.includes('email') && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400">📧</span>
+                          <Mail sx={{ fontSize: 16, color: 'text.secondary' }} />
                         )}
                         {apt.reminders.includes('sms') && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400">💬</span>
+                          <Sms sx={{ fontSize: 16, color: 'text.secondary' }} />
                         )}
                         {apt.type === 'online' && (
-                          <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                          <Button size="small" color="primary">
                             Join Call
-                          </button>
+                          </Button>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
           ))}
-        </div>
+        </Box>
       )}
 
       {/* Calendar View (Simplified) */}
       {view === 'calendar' && (
-        <div className="flex-1 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
-            <div className="text-center py-12">
-              <CalendarIcon size={48} className="mx-auto text-slate-400 mb-4" />
-              <p className="text-slate-600 dark:text-slate-400">Calendar view coming soon</p>
-              <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">Use list view to manage appointments</p>
-            </div>
-          </div>
-        </div>
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CalendarMonth sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Calendar view coming soon
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Use list view to manage appointments
+            </Typography>
+          </Paper>
+        </Box>
       )}
 
       {/* Create Appointment Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Schedule Appointment</h2>
-            <div className="space-y-3">
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Client</option>
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-                <option>Robert Williams</option>
-              </select>
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Staff</option>
-                <option>Dr. Sarah Smith</option>
-                <option>John Johnson</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Service Type"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        aria-labelledby="create-appointment-modal"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '90%', sm: 500 },
+          maxHeight: '90vh',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          p: 4,
+          boxShadow: 24,
+        }}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Schedule Appointment
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Client</MenuItem>
+              <MenuItem value="john">John Doe</MenuItem>
+              <MenuItem value="jane">Jane Smith</MenuItem>
+              <MenuItem value="robert">Robert Williams</MenuItem>
+            </Select>
+
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Staff</MenuItem>
+              <MenuItem value="sarah">Dr. Sarah Smith</MenuItem>
+              <MenuItem value="john">John Johnson</MenuItem>
+            </Select>
+
+            <TextField
+              placeholder="Service Type"
+              size="small"
+              fullWidth
+            />
+
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
                   type="date"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  size="small"
+                  fullWidth
                 />
-                <input
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
                   type="time"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  size="small"
+                  fullWidth
                 />
-              </div>
-              <input
-                type="number"
-                placeholder="Duration (minutes)"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>In Person</option>
-                <option>Online</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Location / Room"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3">
-                <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">Reminders</p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">Email Reminder</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">SMS Reminder</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  showNotification('Appointment scheduled successfully!');
-                  setShowCreateModal(false);
-                }}
-                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-              >
-                Schedule
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+              </Grid>
+            </Grid>
+
+            <TextField
+              type="number"
+              placeholder="Duration (minutes)"
+              size="small"
+              fullWidth
+            />
+
+            <Select size="small" defaultValue="in-person" fullWidth>
+              <MenuItem value="in-person">In Person</MenuItem>
+              <MenuItem value="online">Online</MenuItem>
+            </Select>
+
+            <TextField
+              placeholder="Location / Room"
+              size="small"
+              fullWidth
+            />
+
+            <Paper sx={{ p: 2, bgcolor: 'action.hover' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Reminders
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={reminders.email}
+                      onChange={(e) => setReminders(prev => ({ ...prev, email: e.target.checked }))}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Mail sx={{ fontSize: 16 }} />
+                      <Typography variant="body2">Email Reminder</Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={reminders.sms}
+                      onChange={(e) => setReminders(prev => ({ ...prev, sms: e.target.checked }))}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Sms sx={{ fontSize: 16 }} />
+                      <Typography variant="body2">SMS Reminder</Typography>
+                    </Box>
+                  }
+                />
+              </Box>
+            </Paper>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowCreateModal(false)}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                showNotification('Appointment scheduled successfully!');
+                setShowCreateModal(false);
+              }}
+              fullWidth
+            >
+              Schedule
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }

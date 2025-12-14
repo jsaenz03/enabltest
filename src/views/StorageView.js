@@ -1,5 +1,31 @@
 import React, { useState } from 'react';
-import { Upload, Search, Download, Trash2, File, FileText, Image, Video, Eye } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  IconButton,
+  Modal,
+  Chip,
+  Paper,
+} from '@mui/material';
+import {
+  CloudUpload,
+  Search,
+  Download,
+  Delete,
+  InsertDriveFile,
+  Description,
+  Image,
+  VideoFile,
+  Visibility,
+  Lock,
+} from '@mui/icons-material';
 
 export default function StorageView({ showNotification }) {
   const [files, setFiles] = useState([
@@ -59,13 +85,13 @@ export default function StorageView({ showNotification }) {
   const getFileIcon = (type) => {
     switch(type) {
       case 'image':
-        return <Image size={20} className="text-blue-600 dark:text-blue-400" />;
+        return <Image sx={{ fontSize: 20, color: 'primary.main' }} />;
       case 'video':
-        return <Video size={20} className="text-purple-600 dark:text-purple-400" />;
+        return <VideoFile sx={{ fontSize: 20, color: 'secondary.main' }} />;
       case 'document':
-        return <FileText size={20} className="text-red-600 dark:text-red-400" />;
+        return <Description sx={{ fontSize: 20, color: 'error.main' }} />;
       default:
-        return <File size={20} className="text-slate-600 dark:text-slate-400" />;
+        return <InsertDriveFile sx={{ fontSize: 20, color: 'text.secondary' }} />;
     }
   };
 
@@ -76,182 +102,253 @@ export default function StorageView({ showNotification }) {
   }, 0);
 
   return (
-    <div className="h-full flex flex-col">
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Cloud Storage</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Secure document and file management</p>
-      </div>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Cloud Storage
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Secure document and file management
+        </Typography>
+      </Box>
 
       {/* Storage Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Total Files</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">{files.length}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Storage Used</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">
-            {(totalSize / 1024).toFixed(1)} MB
-          </p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Storage Limit</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">10 GB</p>
-        </div>
-      </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Total Files
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+                {files.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Storage Used
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+                {(totalSize / 1024).toFixed(1)} MB
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Storage Limit
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+                10 GB
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Search and Filter */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search files..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-          />
-        </div>
-        <select
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search files..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+          }}
+          size="small"
+        />
+        <Select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
+          size="small"
+          sx={{ minWidth: 150 }}
         >
-          <option value="all">All Categories</option>
-          <option value="assessments">Assessments</option>
-          <option value="therapy-plans">Therapy Plans</option>
-          <option value="progress-photos">Progress Photos</option>
-          <option value="videos">Videos</option>
-          <option value="reports">Reports</option>
-          <option value="other">Other</option>
-        </select>
-        <button
+          <MenuItem value="all">All Categories</MenuItem>
+          <MenuItem value="assessments">Assessments</MenuItem>
+          <MenuItem value="therapy-plans">Therapy Plans</MenuItem>
+          <MenuItem value="progress-photos">Progress Photos</MenuItem>
+          <MenuItem value="videos">Videos</MenuItem>
+          <MenuItem value="reports">Reports</MenuItem>
+          <MenuItem value="other">Other</MenuItem>
+        </Select>
+        <Button
+          variant="contained"
+          startIcon={<CloudUpload />}
           onClick={() => setShowUploadModal(true)}
-          className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center gap-2"
+          sx={{ minWidth: { xs: 'auto', sm: 120 } }}
         >
-          <Upload size={18} />
-          <span className="hidden sm:inline">Upload</span>
-        </button>
-      </div>
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Upload
+          </Box>
+        </Button>
+      </Box>
 
       {/* Files List */}
-      <div className="flex-1 overflow-y-auto space-y-2">
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
         {filteredFiles.map((file) => (
-          <div
-            key={file.id}
-            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                {getFileIcon(file.type)}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate mb-1">
-                  {file.name}
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                  <p>Client: {file.clientName}</p>
-                  <p>Size: {file.size}</p>
-                  <p>Uploaded: {new Date(file.uploadDate).toLocaleDateString()}</p>
-                  <p>By: {file.uploadedBy}</p>
-                </div>
+          <Card key={file.id} sx={{ mb: 2, '&:hover': { boxShadow: 2 } }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <Box sx={{ flexShrink: 0, mt: 0.5 }}>
+                  {getFileIcon(file.type)}
+                </Box>
 
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded">
-                    {file.category.replace('-', ' ')}
-                  </span>
-                </div>
-              </div>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {file.name}
+                  </Typography>
 
-              <div className="flex gap-2">
-                <button
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  title="Preview"
-                >
-                  <Eye size={16} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <button
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  title="Download"
-                  onClick={() => showNotification('Downloading file...')}
-                >
-                  <Download size={16} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <button
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 size={16} className="text-red-600" />
-                </button>
-              </div>
-            </div>
-          </div>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Client: {file.clientName}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Size: {file.size}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Uploaded: {new Date(file.uploadDate).toLocaleDateString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        By: {file.uploadedBy}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+
+                  <Chip
+                    label={file.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    size="small"
+                    variant="outlined"
+                    sx={{ textTransform: 'capitalize' }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <IconButton size="small" title="Preview">
+                    <Visibility fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    title="Download"
+                    onClick={() => showNotification('Downloading file...')}
+                  >
+                    <Download fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" title="Delete" color="error">
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </div>
+      </Box>
 
       {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Upload File</h2>
-            <div className="space-y-3">
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Client</option>
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-                <option>Robert Williams</option>
-              </select>
-              
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Category</option>
-                <option>Assessments</option>
-                <option>Therapy Plans</option>
-                <option>Progress Photos</option>
-                <option>Videos</option>
-                <option>Reports</option>
-                <option>Other</option>
-              </select>
+      <Modal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        aria-labelledby="upload-file-modal"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '90%', sm: 500 },
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          p: 4,
+          boxShadow: 24,
+        }}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Upload File
+          </Typography>
 
-              <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center">
-                <Upload size={48} className="mx-auto text-slate-400 mb-3" />
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500">
-                  Max file size: 10MB
-                </p>
-                <input type="file" className="hidden" />
-              </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Client</MenuItem>
+              <MenuItem value="john">John Doe</MenuItem>
+              <MenuItem value="jane">Jane Smith</MenuItem>
+              <MenuItem value="robert">Robert Williams</MenuItem>
+            </Select>
 
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <p className="text-xs text-blue-800 dark:text-blue-200">
-                  🔒 All files are encrypted and stored securely in compliance with NDIS requirements
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  showNotification('File uploaded successfully!');
-                  setShowUploadModal(false);
-                }}
-                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-              >
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Category</MenuItem>
+              <MenuItem value="assessments">Assessments</MenuItem>
+              <MenuItem value="therapy-plans">Therapy Plans</MenuItem>
+              <MenuItem value="progress-photos">Progress Photos</MenuItem>
+              <MenuItem value="videos">Videos</MenuItem>
+              <MenuItem value="reports">Reports</MenuItem>
+              <MenuItem value="other">Other</MenuItem>
+            </Select>
+
+            <Paper
+              sx={{
+                p: 4,
+                textAlign: 'center',
+                border: '2px dashed',
+                borderColor: 'divider',
+                bgcolor: 'action.hover',
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'action.selected',
+                }
+              }}
+            >
+              <CloudUpload sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Click to upload or drag and drop
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Max file size: 10MB
+              </Typography>
+              <input type="file" style={{ display: 'none' }} />
+            </Paper>
+
+            <Paper sx={{ p: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
+              <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Lock sx={{ fontSize: 14 }} />
+                All files are encrypted and stored securely in compliance with NDIS requirements
+              </Typography>
+            </Paper>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowUploadModal(false)}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                showNotification('File uploaded successfully!');
+                setShowUploadModal(false);
+              }}
+              fullWidth
+            >
+              Upload
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }

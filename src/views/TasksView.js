@@ -1,5 +1,27 @@
 import React, { useState } from 'react';
-import { Plus, X, CheckCircle, Clock, Trash2 } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  IconButton,
+  Card,
+  CardContent,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Grid,
+  Paper,
+} from '@mui/material';
+import {
+  Add,
+  Close,
+  CheckCircle,
+  AccessTime,
+  Delete,
+} from '@mui/icons-material';
 
 export default function TasksView({ tasks, toggleTask, deleteTask, addTask, showNotification }) {
   const [newTaskText, setNewTaskText] = useState('');
@@ -9,13 +31,13 @@ export default function TasksView({ tasks, toggleTask, deleteTask, addTask, show
   const getPriorityColor = (p) => {
     switch (p) {
       case 'STAT':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'error';
       case 'Urgent':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'warning';
       case 'Routine':
-        return 'bg-blue-50 text-blue-700 border-blue-100';
+        return 'primary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'default';
     }
   };
 
@@ -37,16 +59,19 @@ export default function TasksView({ tasks, toggleTask, deleteTask, addTask, show
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">My Shift Tasks</h2>
-        <button
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          My Shift Tasks
+        </Typography>
+        <IconButton
           onClick={() => setIsAdding(!isAdding)}
-          className="bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition"
+          color="primary"
+          sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', '&:hover': { bgcolor: 'primary.dark' } }}
         >
-          {isAdding ? <X size={20} /> : <Plus size={20} />}
-        </button>
-      </div>
+          {isAdding ? <Close /> : <Add />}
+        </IconButton>
+      </Box>
 
       {isAdding && (
         <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl mb-4 border border-slate-200 dark:border-slate-700 animate-slideDown">

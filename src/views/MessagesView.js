@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import { Send, Lock, Search, MessageSquare, User } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  TextField,
+  IconButton,
+  Paper,
+  Chip,
+  Avatar,
+  Divider,
+  List,
+  ListItem,
+} from '@mui/material';
+import {
+  Send,
+  Lock,
+  Search,
+  Chat,
+  Person,
+} from '@mui/icons-material';
 
 export default function MessagesView({ showNotification }) {
   const [conversations, setConversations] = useState([
@@ -88,154 +106,209 @@ export default function MessagesView({ showNotification }) {
     }
   };
 
-  return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Messages</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
-          <Lock size={14} />
-          End-to-end encrypted messaging
-        </p>
-      </div>
+  const selectedClientName = conversations.find(c => c.id === selectedConversation)?.clientName;
 
-      <div className="flex-1 flex gap-4 overflow-hidden">
+  return (
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Messages
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Lock sx={{ fontSize: 16 }} />
+          End-to-end encrypted messaging
+        </Typography>
+      </Box>
+
+      <Box sx={{ flex: 1, display: 'flex', gap: 2, overflow: 'hidden' }}>
         {/* Conversations List */}
-        <div className="w-full sm:w-80 flex flex-col">
+        <Box sx={{ width: { xs: '100%', sm: 320 }, display: 'flex', flexDirection: 'column' }}>
           {/* Search */}
-          <div className="mb-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-              />
-            </div>
-          </div>
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              placeholder="Search conversations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+              }}
+              size="small"
+            />
+          </Box>
 
           {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {filteredConversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => setSelectedConversation(conv.id)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
-                  selectedConversation === conv.id
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
-                } border border-slate-200 dark:border-slate-700`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-semibold">{conv.clientName}</h3>
-                  {conv.unread > 0 && (
-                    <span className="bg-red-600 text-white text-xs rounded-full px-2 py-0.5">
-                      {conv.unread}
-                    </span>
-                  )}
-                </div>
-                <p className={`text-sm truncate ${
-                  selectedConversation === conv.id
-                    ? 'text-white/70 dark:text-slate-900/70'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}>
-                  {conv.lastMessage}
-                </p>
-                <div className="flex justify-between items-center mt-1">
-                  <span className={`text-xs ${
-                    selectedConversation === conv.id
-                      ? 'text-white/50 dark:text-slate-900/50'
-                      : 'text-slate-500 dark:text-slate-500'
-                  }`}>
-                    {formatTime(conv.timestamp)}
-                  </span>
-                  {conv.encrypted && (
-                    <Lock size={12} className={
-                      selectedConversation === conv.id
-                        ? 'text-white/50 dark:text-slate-900/50'
-                        : 'text-slate-400'
-                    } />
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
+            <List sx={{ p: 0 }}>
+              {filteredConversations.map((conv) => (
+                <Paper
+                  key={conv.id}
+                  elevation={0}
+                  sx={{
+                    mb: 1,
+                    cursor: 'pointer',
+                    border: selectedConversation === conv.id ? 2 : 1,
+                    borderColor: selectedConversation === conv.id ? 'primary.main' : 'divider',
+                    bgcolor: selectedConversation === conv.id ? 'primary.main' : 'background.paper',
+                    color: selectedConversation === conv.id ? 'primary.contrastText' : 'text.primary',
+                    '&:hover': {
+                      bgcolor: selectedConversation === conv.id ? 'primary.dark' : 'action.hover',
+                    }
+                  }}
+                  onClick={() => setSelectedConversation(conv.id)}
+                >
+                  <Box sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        {conv.clientName}
+                      </Typography>
+                      {conv.unread > 0 && (
+                        <Chip
+                          label={conv.unread}
+                          size="small"
+                          sx={{
+                            bgcolor: 'error.main',
+                            color: 'error.contrastText',
+                            minWidth: 24,
+                            height: 20,
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      )}
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        color: selectedConversation === conv.id ? 'inherit' : 'text.secondary',
+                        opacity: selectedConversation === conv.id ? 0.9 : 1,
+                      }}
+                    >
+                      {conv.lastMessage}
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: selectedConversation === conv.id ? 'inherit' : 'text.secondary',
+                          opacity: selectedConversation === conv.id ? 0.7 : 1,
+                        }}
+                      >
+                        {formatTime(conv.timestamp)}
+                      </Typography>
+                      {conv.encrypted && (
+                        <Lock sx={{ fontSize: 12, opacity: 0.6 }} />
+                      )}
+                    </Box>
+                  </Box>
+                </Paper>
+              ))}
+            </List>
+          </Box>
+        </Box>
 
         {/* Messages Area */}
-        <div className="hidden sm:flex flex-1 flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+        <Paper
+          sx={{
+            flex: 1,
+            display: { xs: 'none', sm: 'flex' },
+            flexDirection: 'column',
+            overflow: 'hidden',
+            borderRadius: 2,
+          }}
+        >
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                <h3 className="font-semibold text-slate-900 dark:text-white">
-                  {conversations.find(c => c.id === selectedConversation)?.clientName}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <Lock size={12} />
+              <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  {selectedClientName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Lock sx={{ fontSize: 12 }} />
                   Messages are encrypted
-                </p>
-              </div>
+                </Typography>
+              </Box>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
                 {(messages[selectedConversation] || []).map((msg) => (
-                  <div
+                  <Box
                     key={msg.id}
-                    className={`flex ${msg.sender === 'staff' ? 'justify-end' : 'justify-start'}`}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: msg.sender === 'staff' ? 'flex-end' : 'flex-start',
+                      mb: 2,
+                    }}
                   >
-                    <div
-                      className={`max-w-[70%] rounded-lg p-3 ${
-                        msg.sender === 'staff'
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'
-                      }`}
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        maxWidth: '70%',
+                        bgcolor: msg.sender === 'staff' ? 'primary.main' : 'grey.100',
+                        color: msg.sender === 'staff' ? 'primary.contrastText' : 'text.primary',
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: 2,
+                        borderBottomLeftRadius: msg.sender === 'staff' ? 2 : 0.5,
+                        borderBottomRightRadius: msg.sender === 'staff' ? 0.5 : 2,
+                      }}
                     >
-                      <p className="text-sm">{msg.text}</p>
-                      <p className={`text-xs mt-1 ${
-                        msg.sender === 'staff'
-                          ? 'text-white/50 dark:text-slate-900/50'
-                          : 'text-slate-500 dark:text-slate-400'
-                      }`}>
+                      <Typography variant="body2">
+                        {msg.text}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: 'block',
+                          mt: 0.5,
+                          opacity: 0.7,
+                        }}
+                      >
                         {formatTime(msg.timestamp)}
-                      </p>
-                    </div>
-                  </div>
+                      </Typography>
+                    </Paper>
+                  </Box>
                 ))}
-              </div>
+              </Box>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
+              <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    fullWidth
+                    placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Type a message..."
-                    className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
+                    size="small"
                   />
-                  <button
+                  <IconButton
+                    color="primary"
                     onClick={handleSendMessage}
-                    className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+                    disabled={!newMessage.trim()}
                   >
-                    <Send size={18} />
-                  </button>
-                </div>
-              </div>
+                    <Send />
+                  </IconButton>
+                </Box>
+              </Box>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageSquare size={48} className="mx-auto text-slate-400 mb-4" />
-                <p className="text-slate-600 dark:text-slate-400">Select a conversation to start messaging</p>
-              </div>
-            </div>
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Chat sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary">
+                  Select a conversation to start messaging
+                </Typography>
+              </Box>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Paper>
+      </Box>
+    </Box>
   );
 }

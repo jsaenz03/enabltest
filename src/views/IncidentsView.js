@@ -1,5 +1,28 @@
 import React, { useState } from 'react';
-import { Plus, Search, AlertTriangle, Eye, FileText, Clock } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  Chip,
+  IconButton,
+  Modal,
+  Paper,
+  Alert,
+} from '@mui/material';
+import {
+  Add,
+  Search,
+  Warning,
+  Visibility,
+  Description,
+  AccessTime,
+} from '@mui/icons-material';
 
 export default function IncidentsView({ showNotification }) {
   const [incidents, setIncidents] = useState([
@@ -53,209 +76,287 @@ export default function IncidentsView({ showNotification }) {
     return matchesSearch && matchesSeverity;
   });
 
-  const getSeverityStyles = (severity) => {
+  const getSeverityColor = (severity) => {
     switch(severity) {
       case 'high':
-        return 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300';
+        return 'error';
       case 'moderate':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300';
+        return 'warning';
       case 'low':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300';
+        return 'info';
       default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        return 'default';
     }
   };
 
-  const getStatusStyles = (status) => {
+  const getStatusColor = (status) => {
     switch(status) {
       case 'reviewed':
-        return 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300';
+        return 'success';
       case 'under_review':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300';
+        return 'warning';
       case 'pending':
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        return 'default';
       default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        return 'default';
     }
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <Box className="hide-scrollbar" sx={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Incidents</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Report and manage incident reports</p>
-      </div>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Incidents
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Report and manage incident reports
+        </Typography>
+      </Box>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-        <div className="bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">High Severity</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {incidents.filter(i => i.severity === 'high').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Moderate Severity</p>
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-            {incidents.filter(i => i.severity === 'moderate').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Pending Review</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">
-            {incidents.filter(i => i.status === 'pending').length}
-          </p>
-        </div>
-      </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: 4, borderColor: 'error.main' }}>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                High Severity
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                {incidents.filter(i => i.severity === 'high').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: 4, borderColor: 'warning.main' }}>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Moderate Severity
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                {incidents.filter(i => i.severity === 'moderate').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent sx={{ p: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Pending Review
+              </Typography>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+                {incidents.filter(i => i.status === 'pending').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Filters and Search */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search incidents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-          />
-        </div>
-        <select
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search incidents..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+          }}
+          size="small"
+        />
+        <Select
           value={filterSeverity}
           onChange={(e) => setFilterSeverity(e.target.value)}
-          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
+          size="small"
+          sx={{ minWidth: 120 }}
         >
-          <option value="all">All Severity</option>
-          <option value="high">High</option>
-          <option value="moderate">Moderate</option>
-          <option value="low">Low</option>
-        </select>
-        <button
+          <MenuItem value="all">All Severity</MenuItem>
+          <MenuItem value="high">High</MenuItem>
+          <MenuItem value="moderate">Moderate</MenuItem>
+          <MenuItem value="low">Low</MenuItem>
+        </Select>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center gap-2"
+          sx={{ minWidth: { xs: 'auto', sm: 120 } }}
         >
-          <Plus size={18} />
-          <span className="hidden sm:inline">Report</span>
-        </button>
-      </div>
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Report
+          </Box>
+        </Button>
+      </Box>
 
       {/* Incident List */}
-      <div className="flex-1 overflow-y-auto space-y-3">
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
         {filteredIncidents.map((incident) => (
-          <div
-            key={incident.id}
-            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="text-red-600 dark:text-red-400 mt-0.5" size={18} />
-                <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">{incident.incidentNumber}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{incident.clientName}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getSeverityStyles(incident.severity)}`}>
-                  {incident.severity.toUpperCase()}
-                </span>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusStyles(incident.status)}`}>
-                  {incident.status.replace('_', ' ').toUpperCase()}
-                </span>
-              </div>
-            </div>
+          <Card key={incident.id} sx={{ mb: 2, '&:hover': { boxShadow: 2 } }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Warning sx={{ color: 'error.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      {incident.incidentNumber}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {incident.clientName}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip
+                    label={incident.severity.toUpperCase()}
+                    color={getSeverityColor(incident.severity)}
+                    size="small"
+                  />
+                  <Chip
+                    label={incident.status.replace('_', ' ').toUpperCase()}
+                    color={getStatusColor(incident.status)}
+                    size="small"
+                  />
+                </Box>
+              </Box>
 
-            <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">{incident.description}</p>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {incident.description}
+              </Typography>
 
-            <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Actions Taken:</p>
-              <p className="text-sm text-slate-900 dark:text-white">{incident.actionsTaken}</p>
-            </div>
+              <Paper sx={{ p: 2, bgcolor: 'action.hover', mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  Actions Taken:
+                </Typography>
+                <Typography variant="body2">
+                  {incident.actionsTaken}
+                </Typography>
+              </Paper>
 
-            <div className="flex justify-between items-center text-sm text-slate-600 dark:text-slate-400">
-              <div className="space-y-1">
-                <p className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {new Date(incident.date).toLocaleDateString()} at {incident.time}
-                </p>
-                <p>Reported by: {incident.reporter}</p>
-              </div>
-              <button className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
-                <Eye size={14} />
-                View Full Report
-              </button>
-            </div>
-          </div>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(incident.date).toLocaleDateString()} at {incident.time}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Reported by: {incident.reporter}
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  startIcon={<Visibility />}
+                  variant="outlined"
+                >
+                  View Full Report
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </div>
+      </Box>
 
       {/* Create Incident Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Report Incident</h2>
-            <div className="space-y-3">
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Client</option>
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-                <option>Robert Williams</option>
-              </select>
-              <textarea
-                placeholder="Incident Description"
-                rows="4"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        aria-labelledby="create-incident-modal"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '90%', sm: 500 },
+          maxHeight: '90vh',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          p: 4,
+          boxShadow: 24,
+        }}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Report Incident
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Client</MenuItem>
+              <MenuItem value="john">John Doe</MenuItem>
+              <MenuItem value="jane">Jane Smith</MenuItem>
+              <MenuItem value="robert">Robert Williams</MenuItem>
+            </Select>
+
+            <TextField
+              placeholder="Incident Description"
+              multiline
+              rows={4}
+              size="small"
+              fullWidth
+            />
+
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
                   type="date"
-                  placeholder="Date"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  size="small"
+                  fullWidth
                 />
-                <input
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
                   type="time"
-                  placeholder="Time"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  size="small"
+                  fullWidth
                 />
-              </div>
-              <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white">
-                <option>Select Severity</option>
-                <option>High</option>
-                <option>Moderate</option>
-                <option>Low</option>
-              </select>
-              <textarea
-                placeholder="Actions Taken"
-                rows="3"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-              />
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                  <AlertTriangle size={14} className="inline mr-1" />
-                  High severity incidents will be escalated immediately
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  showNotification('Incident report submitted successfully!');
-                  setShowCreateModal(false);
-                }}
-                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-              >
-                Submit Report
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+              </Grid>
+            </Grid>
+
+            <Select size="small" defaultValue="" fullWidth>
+              <MenuItem value="" disabled>Select Severity</MenuItem>
+              <MenuItem value="high">High</MenuItem>
+              <MenuItem value="moderate">Moderate</MenuItem>
+              <MenuItem value="low">Low</MenuItem>
+            </Select>
+
+            <TextField
+              placeholder="Actions Taken"
+              multiline
+              rows={3}
+              size="small"
+              fullWidth
+            />
+
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              <Typography variant="caption">
+                High severity incidents will be escalated immediately
+              </Typography>
+            </Alert>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowCreateModal(false)}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                showNotification('Incident report submitted successfully!');
+                setShowCreateModal(false);
+              }}
+              fullWidth
+            >
+              Submit Report
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }
